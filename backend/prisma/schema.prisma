@@ -1,0 +1,193 @@
+// Prisma Schema for Givora E-commerce - MongoDB Version
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// User Model - Authentication and Profile
+model User {
+  id                      String   @id @default(auto()) @map("_id") @db.ObjectId
+  email                   String   @unique
+  passwordHash            String   @map("password_hash")
+  firstName               String?  @map("first_name")
+  lastName                String?  @map("last_name")
+  phone                   String?
+  address                 String?
+  accountType             String   @default("retail") @map("account_type")
+  isVerified              Boolean  @default(false) @map("is_verified")
+  approved                Boolean  @default(false)
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+  verificationCode        String?  @map("verification_code")
+  verificationCodeExpiry  DateTime? @map("verification_code_expiry")
+  verificationEmailSentAt DateTime? @map("verification_email_sent_at")
+
+  // Relations
+  cartItems            CartItem[]
+  orders               Order[]
+  wholesaleApplication WholesaleApplication?
+  passwordResetTokens  PasswordResetToken[]
+  tokens               Token[]
+
+  @@map("users")
+}
+
+// Product Model - Catalog Management
+model Product {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  category       String
+  description    String?
+  sku            String   @unique
+  moq            Int      @default(100) // Minimum Order Quantity
+  retailPrice    Float    @map("retail_price")
+  wholesalePrice Float    @map("wholesale_price")
+  stockQuantity  Int      @map("stock_quantity")
+  imageUrl       String?  @map("image_url")
+  cloudinaryId   String?  @map("cloudinary_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  productImages  ProductImage[]
+
+  @@map("products")
+}
+
+// Product Images Model
+model ProductImage {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId    String   @map("product_id") @db.ObjectId
+  imageUrl     String   @map("image_url")
+  cloudinaryId String?  @map("cloudinary_id")
+  sortOrder    Int      @default(0) @map("sort_order")
+  isPrimary    Boolean  @default(false) @map("is_primary")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+// Cart Model
+model CartItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @map("user_id") @db.ObjectId
+  productId String   @map("product_id") @db.ObjectId
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("cart_items")
+}
+
+// Order Model
+model Order {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @map("user_id") @db.ObjectId
+  orderDate       DateTime @default(now()) @map("order_date")
+  totalAmount     Float    @map("total_amount")
+  subtotal        Float
+  taxAmount       Float    @map("tax_amount")
+  shippingCost    Float    @map("shipping_cost")
+  shippingMethod  String?  @map("shipping_method")
+  status          String   @default("pending")
+  paymentMethod   String?  @map("payment_method")
+  stripePaymentId String?  @map("stripe_payment_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+
+  @@map("orders")
+}
+
+// Order Items Model
+model OrderItem {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId         String   @map("order_id") @db.ObjectId
+  productId       String   @map("product_id") @db.ObjectId
+  quantity        Int
+  unitPrice       Float    @map("unit_price")
+  discountApplied Float    @default(0) @map("discount_applied")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("order_items")
+}
+
+// Wholesale Application Model
+model WholesaleApplication {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @unique @map("user_id") @db.ObjectId
+  businessName      String   @map("business_name")
+  einNumber         String   @map("ein_number")
+  businessType      String   @map("business_type")
+  address           String
+  city              String
+  state             String
+  zip               String
+  phone             String
+  approvalStatus    String   @default("pending") @map("approval_status")
+  totalUnitsOrdered Int      @default(0) @map("total_units_ordered")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("wholesale_applications")
+}
+
+// Contact Message Model
+model ContactMessage {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  email      String
+  subject    String
+  message    String
+  readStatus Boolean  @default(false) @map("read_status")
+  adminReply String?  @map("admin_reply")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("contact_messages")
+}
+
+// Password Reset Token Model
+model PasswordResetToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @map("user_id") @db.ObjectId
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+// Generic Token Model
+model Token {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @map("user_id") @db.ObjectId
+  token     String   @unique
+  type      String
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("tokens")
+}
