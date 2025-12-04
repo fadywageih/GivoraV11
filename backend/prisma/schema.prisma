@@ -10,19 +10,19 @@ datasource db {
 
 // User Model - Authentication and Profile
 model User {
-  id                      String   @id @default(auto()) @map("_id") @db.ObjectId
-  email                   String   @unique
-  passwordHash            String   @map("password_hash")
-  firstName               String?  @map("first_name")
-  lastName                String?  @map("last_name")
+  id                      String    @id @default(auto()) @map("_id") @db.ObjectId
+  email                   String    @unique
+  passwordHash            String    @map("password_hash")
+  firstName               String?   @map("first_name")
+  lastName                String?   @map("last_name")
   phone                   String?
   address                 String?
-  accountType             String   @default("retail") @map("account_type")
-  isVerified              Boolean  @default(false) @map("is_verified")
-  approved                Boolean  @default(false)
-  createdAt               DateTime @default(now()) @map("created_at")
-  updatedAt               DateTime @updatedAt @map("updated_at")
-  verificationCode        String?  @map("verification_code")
+  accountType             String    @default("retail") @map("account_type")
+  isVerified              Boolean   @default(false) @map("is_verified")
+  approved                Boolean   @default(false)
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+  verificationCode        String?   @map("verification_code")
   verificationCodeExpiry  DateTime? @map("verification_code_expiry")
   verificationEmailSentAt DateTime? @map("verification_email_sent_at")
 
@@ -43,21 +43,45 @@ model Product {
   category       String
   description    String?
   sku            String   @unique
+  productType    String   @default("simple") @map("product_type") // "simple" or "variable"
   moq            Int      @default(100) // Minimum Order Quantity
   retailPrice    Float    @map("retail_price")
   wholesalePrice Float    @map("wholesale_price")
   stockQuantity  Int      @map("stock_quantity")
   imageUrl       String?  @map("image_url")
   cloudinaryId   String?  @map("cloudinary_id")
+  isActive       Boolean  @default(true) @map("is_active")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   // Relations
-  cartItems      CartItem[]
-  orderItems     OrderItem[]
-  productImages  ProductImage[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  productImages ProductImage[]
+  variants      ProductVariant[]
 
   @@map("products")
+}
+
+// Product Variant Model - For variable products
+model ProductVariant {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId      String   @map("product_id") @db.ObjectId
+  variantSku     String   @unique @map("variant_sku")
+  dimensions     String? // e.g., "20x20x20" (stored as string but can represent numbers)
+  packetSize     String?  @map("packet_size") // e.g., "1000" units per packet
+  retailPrice    Float    @map("retail_price")
+  wholesalePrice Float    @map("wholesale_price")
+  stockQuantity  Int      @map("stock_quantity")
+  sortOrder      Int      @default(0) @map("sort_order")
+  isDefault      Boolean  @default(false) @map("is_default")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_variants")
 }
 
 // Product Images Model
@@ -107,7 +131,7 @@ model Order {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   items OrderItem[]
 
   @@map("orders")

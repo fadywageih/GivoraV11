@@ -90,6 +90,56 @@ export const validateProduct = [
 ];
 
 /**
+ * Variable Product Validation
+ */
+export const validateVariableProduct = [
+    body('name')
+        .trim()
+        .notEmpty()
+        .withMessage('Product name is required'),
+    body('category')
+        .trim()
+        .notEmpty()
+        .withMessage('Category is required'),
+    body('sku')
+        .trim()
+        .notEmpty()
+        .withMessage('SKU is required'),
+    body('productType')
+        .equals('variable')
+        .withMessage('Product type must be variable'),
+    body('moq')
+        .isInt({ min: 1 })
+        .withMessage('MOQ must be a positive integer'),
+    body('retailPrice')
+        .isFloat({ min: 0 })
+        .withMessage('Retail price must be a positive number'),
+    body('wholesalePrice')
+        .isFloat({ min: 0 })
+        .withMessage('Wholesale price must be a positive number'),
+    body('stockQuantity')
+        .isInt({ min: 0 })
+        .withMessage('Stock quantity must be a non-negative integer'),
+    body('variants')
+        .isArray({ min: 1 })
+        .withMessage('Variable product must have at least one variant'),
+    body('variants.*.variantSku')
+        .trim()
+        .notEmpty()
+        .withMessage('Variant SKU is required'),
+    body('variants.*.retailPrice')
+        .isFloat({ min: 0 })
+        .withMessage('Variant retail price must be a positive number'),
+    body('variants.*.wholesalePrice')
+        .isFloat({ min: 0 })
+        .withMessage('Variant wholesale price must be a positive number'),
+    body('variants.*.stockQuantity')
+        .isInt({ min: 0 })
+        .withMessage('Variant stock quantity must be a non-negative integer'),
+    validate
+];
+
+/**
  * Cart Item Validation
  */
 export const validateCartItem = [

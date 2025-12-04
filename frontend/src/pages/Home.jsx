@@ -2,29 +2,110 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Award, 
-  Truck, 
-  DollarSign, 
-  Users, 
-  Hotel, 
-  Utensils, 
-  Heart, 
+import {
+  Award,
+  Truck,
+  DollarSign,
+  Users,
+  Hotel,
+  Utensils,
+  Heart,
   Store,
   Shield,
-  ArrowRight
+  ArrowRight,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Home = () => {
-  const categories = [
-    { name: 'Tissue', icon: '🧻', description: 'Premium quality tissues' },
-    { name: 'Paper Towels', icon: '🧻', description: 'Absorbent & durable' },
-    { name: 'Gloves', icon: '🧤', description: 'Protective disposable' },
-    { name: 'Garbage Bags', icon: '🗑️', description: 'Heavy-duty solutions' },
-    { name: 'Underpads', icon: '🛏️', description: 'Healthcare essentials' },
-    { name: 'Cups', icon: '🥤', description: 'Disposable drinkware' },
-    { name: 'Paper Bags', icon: '🛍️', description: 'Eco-friendly packaging' }
+  const mainCategories = [
+    {
+      title: 'Hotels & Hospitality',
+      icon: Hotel,
+      color: 'from-blue-600 to-purple-600',
+      bgColor: 'bg-gradient-to-br from-blue-50 to-purple-50',
+      description: 'Premium supplies for hotels, resorts, and accommodation facilities',
+      subcategories: [
+        {
+          name: 'Tissue',
+          image: 'https://industry.pulpandpaper-technology.com/suppliers/sertec20/products/tissue-lg.jpg',
+          description: 'Premium quality tissues'
+        },
+        {
+          name: 'Garbage Bags',
+          image: 'https://tse4.mm.bing.net/th/id/OIP.vizSPy1VmO6rgiF4PPptvAHaFI?rs=1&pid=ImgDetMain&o=7&rm=3',
+          description: 'Heavy-duty trash bags'
+        },
+        {
+          name: 'Cups',
+          image: 'https://img.freepik.com/premium-photo/large-collection-cups-cups-are-displayed-store_948735-225162.jpg',
+          description: 'Disposable plastic cups'
+        }
+      ]
+    },
+    {
+      title: 'Food Service',
+      icon: Utensils,
+      color: 'from-orange-600 to-red-600',
+      bgColor: 'bg-gradient-to-br from-orange-50 to-red-50',
+      description: 'Essential supplies for restaurants, cafes, and catering',
+      subcategories: [
+        {
+          name: 'Cups',
+          image: 'https://img.freepik.com/premium-photo/large-collection-cups-cups-are-displayed-store_948735-225162.jpg',
+          description: 'Disposable plastic cups'
+        },
+        {
+          name: 'Paper Bags',
+          image: 'https://tse2.mm.bing.net/th/id/OIP.Sn1f8jQdqN0GKlT6KjP5KAHaGE?rs=1&pid=ImgDetMain&o=7&rm=3',
+          description: 'Takeout packaging bags'
+        },
+        {
+          name: 'Garbage Bags',
+          image: 'https://tse4.mm.bing.net/th/id/OIP.vizSPy1VmO6rgiF4PPptvAHaFI?rs=1&pid=ImgDetMain&o=7&rm=3',
+          description: 'Commercial grade trash bags'
+        },
+        {
+          name: 'Gloves',
+          image: 'https://tse2.mm.bing.net/th/id/OIP.wfiZ2E7xxKQbSqOaerQoeQHaHa?rs=1&pid=ImgDetMain&o=7&rm=3',
+          description: 'Food safe disposable gloves'
+        },
+        {
+          name: 'Paper Towels',
+          image: 'https://th.bing.com/th/id/R.47c48cdb3abd0d8819e878f744048dd0?rik=QUhliV%2bqJy9f%2fA&pid=ImgRaw&r=0',
+          description: 'Absorbent paper towels'
+        },
+        {
+          name: 'Tissue',
+          image: 'https://industry.pulpandpaper-technology.com/suppliers/sertec20/products/tissue-lg.jpg',
+          description: 'Premium quality tissue paper'
+        }
+      ]
+    },
+    {
+      title: 'Healthcare',
+      icon: Heart,
+      color: 'from-green-600 to-teal-600',
+      bgColor: 'bg-gradient-to-br from-green-50 to-teal-50',
+      description: 'Medical grade supplies for healthcare facilities',
+      subcategories: [
+        {
+          name: 'Gloves',
+          image: 'https://tse2.mm.bing.net/th/id/OIP.wfiZ2E7xxKQbSqOaerQoeQHaHa?rs=1&pid=ImgDetMain&o=7&rm=3',
+          description: 'Medical grade disposable gloves'
+        },
+        {
+          name: 'Underpads',
+          image: 'https://tse4.mm.bing.net/th/id/OIP.duofSD2WS8E8tSOSxuTG5gHaGx?rs=1&pid=ImgDetMain&o=7&rm=3',
+          description: 'Medical bed underpads'
+        },
+        {
+          name: 'Wet Wipes',
+          image: 'https://tse1.mm.bing.net/th/id/OIP.5UmAB9syt1tR98ad-rGkbgHaDS?rs=1&pid=ImgDetMain&o=7&rm=3',
+          description: 'Medical wet wipes'
+        }
+      ]
+    }
   ];
 
   const features = [
@@ -55,26 +136,26 @@ const Home = () => {
   ];
 
   const industries = [
-    { 
-      icon: Hotel, 
+    {
+      icon: Hotel,
       name: 'Hotels',
       description: 'Hospitality supplies for hotels and resorts',
       count: '500+'
     },
-    { 
-      icon: Utensils, 
+    {
+      icon: Utensils,
       name: 'Restaurants',
       description: 'Food service essentials for restaurants',
       count: '1200+'
     },
-    { 
-      icon: Heart, 
+    {
+      icon: Heart,
       name: 'Healthcare',
       description: 'Medical and healthcare supplies',
       count: '300+'
     },
-    { 
-      icon: Store, 
+    {
+      icon: Store,
       name: 'Markets',
       description: 'Retail and supermarket solutions',
       count: '800+'
@@ -97,7 +178,7 @@ const Home = () => {
             backgroundSize: '50px 50px'
           }}></div>
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -127,8 +208,8 @@ const Home = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link to="/shop">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   className="bg-gradient-to-r from-[#C9A227] to-[#B5941F] hover:from-[#B5941F] hover:to-[#A3851B] text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 >
                   Shop Supplies
@@ -136,21 +217,19 @@ const Home = () => {
                 </Button>
               </Link>
               <Link to="/wholesale-registration">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-2 border-white text-white hover:bg-white hover:text-[#0A1F44] px-8 py-3 rounded-xl font-semibold backdrop-blur-sm transition-all duration-300 transform hover:scale-105"
-                >
-                  Request Wholesale Account
-                </Button>
+<Button
+  size="lg"
+  variant="outline"
+  className="border-2 border-[#C9A227] text-[#C9A227] hover:bg-[#C9A227] hover:text-white px-8 py-3 rounded-xl font-semibold backdrop-blur-sm transition-all duration-300 transform hover:scale-105"
+>
+  Request Wholesale Account
+</Button>
               </Link>
             </div>
           </motion.div>
         </div>
       </section>
-
-      {/* Categories Section */}
-      <section className="py-20 bg-gradient-to-b from-white to-[#D9DFE7]/20">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -160,38 +239,82 @@ const Home = () => {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-5xl font-bold mb-4 text-[#0A1F44]">
-              Product <span className="text-[#C9A227]">Categories</span>
+              Industry <span className="text-[#C9A227]">Solutions</span>
             </h2>
             <p className="text-lg text-[#0A1F44]/70 max-w-2xl mx-auto">
-              Explore our comprehensive range of institutional supplies designed for professional use
+              Tailored supplies for different institutional needs with specialized expertise
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            {categories.map((category, index) => (
+          {/* Main Categories Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+            {mainCategories.map((category, index) => (
               <motion.div
-                key={category.name}
-                initial={{ opacity: 0, y: 20 }}
+                key={category.title}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
                 viewport={{ once: true }}
-                className="group bg-white rounded-2xl p-6 text-center shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-[#D9DFE7] hover:border-[#C9A227]/30 hover:transform hover:-translate-y-2"
+                className="group"
               >
-                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                  {category.icon}
+                {/* Main Category Card */}
+                <div className={`${category.bgColor} rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 group-hover:border-gray-200 h-full`}>
+                  {/* Category Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-4">
+                      <div className={`p-3 rounded-xl bg-gradient-to-r ${category.color}`}>
+                        <category.icon className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-[#0A1F44]">{category.title}</h3>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#C9A227] group-hover:translate-x-2 transition-all duration-300" />
+                  </div>
+                  <p className="text-gray-600 mb-8">{category.description}</p>
+                  <div className="mb-8">
+                    <h4 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider">Available Products</h4>
+                    <div className={`grid ${category.subcategories.length === 3 ? 'grid-cols-3' : 'grid-cols-3'} gap-3`}>
+                      {category.subcategories.map((sub, i) => (
+                        <div
+                          key={i}
+                          className="bg-white rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-gray-200"
+                        >
+                          <div className="h-20 overflow-hidden bg-gray-100">
+                            <img
+                              src={sub.image}
+                              alt={sub.name}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
+                          </div>
+                          <div className="p-2 text-center">
+                            <div className="text-xs font-medium text-gray-800 truncate">{sub.name}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <Link to="/shop">
+                    <Button
+                      className={`w-full bg-gradient-to-r ${category.color} hover:opacity-90 text-white font-semibold`}
+                      size="lg"
+                    >
+                      View {category.title} Supplies
+                    </Button>
+                  </Link>
                 </div>
-                <h3 className="font-semibold text-[#0A1F44] mb-1 text-sm">{category.name}</h3>
-                <p className="text-xs text-[#0A1F44]/60 hidden group-hover:block transition-all duration-300">
-                  {category.description}
-                </p>
               </motion.div>
             ))}
           </div>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-r from-[#0A1F44]/5 to-[#C9A227]/5 rounded-3xl p-8"
+          >
+          </motion.div>
         </div>
       </section>
-
-      {/* Features Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gradient-to-b from-white to-gray-50">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -218,7 +341,7 @@ const Home = () => {
                 viewport={{ once: true }}
                 className="group relative"
               >
-                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-[#D9DFE7] group-hover:border-[#C9A227]/30 h-full">
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group-hover:border-[#C9A227]/30 h-full">
                   <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${feature.color} mb-6 group-hover:scale-110 transition-transform duration-300`}>
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
@@ -230,9 +353,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      {/* Industries Section */}
-      <section className="py-20 bg-gradient-to-br from-[#0A1F44]/5 to-[#C9A227]/5">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -248,7 +369,6 @@ const Home = () => {
               Serving thousands of businesses across multiple industries with reliable institutional supplies
             </p>
           </motion.div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {industries.map((industry, index) => (
               <motion.div
@@ -257,7 +377,7 @@ const Home = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="group bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-2xl transition-all duration-300 border border-[#D9DFE7] hover:border-[#C9A227]/30 hover:transform hover:-translate-y-2"
+                className="group bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-[#C9A227]/30 hover:transform hover:-translate-y-2"
               >
                 <div className="bg-gradient-to-br from-[#0A1F44] to-[#0A1F44]/90 p-4 rounded-2xl inline-block mb-4 group-hover:scale-110 transition-transform duration-300">
                   <industry.icon className="w-8 h-8 text-white" />
@@ -270,8 +390,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-[#0A1F44] to-[#1E3A8A] text-white">
         <div className="container mx-auto px-4 text-center">
           <motion.div
@@ -289,17 +407,17 @@ const Home = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/shop">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   className="bg-[#C9A227] hover:bg-[#B5941F] text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   Start Shopping Now
                 </Button>
               </Link>
               <Link to="/contact">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
+                <Button
+                  size="lg"
+                  variant="outline"
                   className="border-2 border-white text-white hover:bg-white hover:text-[#0A1F44] px-8 py-3 rounded-xl font-semibold transition-all duration-300"
                 >
                   Contact Sales
@@ -312,5 +430,4 @@ const Home = () => {
     </>
   );
 };
-
 export default Home;
