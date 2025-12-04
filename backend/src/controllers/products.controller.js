@@ -1,33 +1,25 @@
 import prisma from '../config/database.js';
 import { deleteCloudinaryImage, deleteLocalImage, getCloudinaryPublicId, getLocalFilename, isUsingCloudinary, uploadToCloudinary } from '../middleware/upload.js';
+import {
+    createSimpleProduct,
+    createVariableProduct,
+    updateProductData,
+    getProductWithDetails,
+    getAllProductsWithFilters,
+    deleteProductData
+} from '../services/product.service.js';
 
 export const getAllProducts = async (req, res, next) => {
     try {
-        const { category, search } = req.query;
+        const { category, search, isActive } = req.query;
 
-        const where = {};
+        const filters = {
+            category: category || undefined,
+            search: search || undefined,
+            isActive: isActive !== undefined ? isActive === 'true' : undefined
+        };
 
-        if (category && category !== 'all') {
-            where.category = category;
-        }
-
-        if (search) {
-            where.OR = [
-                { name: { contains: search, mode: 'insensitive' } },
-                { description: { contains: search, mode: 'insensitive' } },
-                { sku: { contains: search, mode: 'insensitive' } }
-            ];
-        }
-
-        const products = await prisma.product.findMany({
-            where,
-            include: {
-                productImages: {
-                    orderBy: { sortOrder: 'asc' }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+        const products = await getAllProductsWithFilters(filters);
 
         res.json({
             success: true,
@@ -41,14 +33,7 @@ export const getProductById = async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        const product = await prisma.product.findUnique({
-            where: { id: parseInt(id) },
-            include: {
-                productImages: {
-                    orderBy: { sortOrder: 'asc' }
-                }
-            }
-        });
+        const product = await getProductWithDetails(String(id));
 
         if (!product) {
             return res.status(404).json({
@@ -72,35 +57,49 @@ export const createProduct = async (req, res, next) => {
             category,
             description,
             sku,
+            productType = 'simple',
             moq,
             retailPrice,
             wholesalePrice,
             stockQuantity,
             imageUrl,
-            productImages ,// ✅ اضيف هذا
-            cloudinaryId
+            cloudinaryId,
+            isActive,
+            productImages,
+            variants
         } = req.body;
 
-        const product = await prisma.product.create({
-            data: {
-                name,
-                category,
-                description,
-                sku,
-                moq: parseInt(moq),
-                retailPrice: parseFloat(retailPrice),
-                wholesalePrice: parseFloat(wholesalePrice),
-                stockQuantity: parseInt(stockQuantity),
-                imageUrl,
-                cloudinaryId,
-                   productImages: productImages ? {
-                    create: productImages.create || productImages
-                } : undefined
-            },
-             include: {
-                productImages: true // ✅ علشان يرجع الـ images مع الـ product
-            }
-        });
+        const productData = {
+            name,
+            category,
+            description,
+            sku,
+            productType,
+            moq,
+            retailPrice,
+            wholesalePrice,
+            stockQuantity,
+            imageUrl,
+            cloudinaryId,
+            isActive
+        };
+
+        let product;
+
+        if (productType === 'variable') {
+            // Create variable product with variants
+            product = await createVariableProduct(
+                productData,
+                variants || [],
+                productImages
+            );
+        } else {
+            // Create simple product
+            product = await createSimpleProduct(
+                productData,
+                productImages
+            );
+        }
 
         res.status(201).json({
             success: true,
@@ -124,19 +123,20 @@ export const updateProduct = async (req, res, next) => {
             category,
             description,
             sku,
+            productType,
             moq,
             retailPrice,
             wholesalePrice,
             stockQuantity,
             imageUrl,
             cloudinaryId,
-             productImages
+            isActive,
+            productImages,
+            variants
         } = req.body;
 
         // Get existing product to check for old image
-        const existingProduct = await prisma.product.findUnique({
-            where: { id: parseInt(id) }
-        });
+        const existingProduct = await getProductWithDetails(String(id));
 
         if (!existingProduct) {
             return res.status(404).json({
@@ -157,31 +157,28 @@ export const updateProduct = async (req, res, next) => {
             }
         }
 
+        const productData = {
+            name,
+            category,
+            description,
+            sku,
+            productType: productType || existingProduct.productType,
+            moq,
+            retailPrice,
+            wholesalePrice,
+            stockQuantity,
+            imageUrl,
+            cloudinaryId,
+            isActive
+        };
+
         // Update product
-        const product = await prisma.product.update({
-            where: { id: parseInt(id) },
-            data: {
-                ...(name !== undefined && { name }),
-                ...(category !== undefined && { category }),
-                ...(description !== undefined && { description }),
-                ...(sku !== undefined && { sku }),
-                ...(moq !== undefined && { moq: parseInt(moq) }),
-                ...(retailPrice !== undefined && { retailPrice: parseFloat(retailPrice) }),
-                ...(wholesalePrice !== undefined && { wholesalePrice: parseFloat(wholesalePrice) }),
-                ...(stockQuantity !== undefined && { stockQuantity: parseInt(stockQuantity) }),
-                ...(imageUrl !== undefined && { imageUrl }),
-                ...(cloudinaryId !== undefined && { cloudinaryId }),
-                 ...(productImages && {
-                    productImages: {
-                        deleteMany: {}, // احذف الصور القديمة
-                        create: productImages.create || productImages // اضيف الصور الجديدة
-                    }
-                })
-            },
-  include: {
-                productImages: true // ✅ علشان يرجع الـ images مع الـ product
-            }
-        });
+        const product = await updateProductData(
+            String(id),
+            productData,
+            productType === 'variable' ? variants : null,
+            productImages
+        );
 
         res.json({
             success: true,
@@ -202,9 +199,7 @@ export const deleteProduct = async (req, res, next) => {
         const { id } = req.params;
 
         // Get product to delete associated image
-        const product = await prisma.product.findUnique({
-            where: { id: parseInt(id) }
-        });
+        const product = await getProductWithDetails(String(id));
 
         if (!product) {
             return res.status(404).json({
@@ -223,10 +218,8 @@ export const deleteProduct = async (req, res, next) => {
             }
         }
 
-        // Delete product
-        await prisma.product.delete({
-            where: { id: parseInt(id) }
-        });
+        // Delete product and related data
+        await deleteProductData(String(id));
 
         res.json({
             success: true,
