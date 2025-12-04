@@ -18,16 +18,24 @@ router.get('/', getAllProducts);
 router.get('/:id', validateId, getProductById);
 
 // Admin routes
-// Dynamic validation based on product type
-const validateProductType = (req, res, next) => {
-    const productType = req.body.productType;
-    if (productType === 'variable') {
-        return validateVariableProduct(req, res, next);
-    }
-    return validateProduct(req, res, next);
+// Dynamic validation based on product type - applies correct validator
+const applyProductValidation = (req, res, next) => {
+    const productType = req.body?.productType;
+    const validators = productType === 'variable' ? validateVariableProduct : validateProduct;
+    
+    // Apply each validator in the chain
+    let index = 0;
+    const executeValidators = () => {
+        if (index >= validators.length) {
+            return next();
+        }
+        const validator = validators[index++];
+        validator(req, res, executeValidators);
+    };
+    executeValidators();
 };
 
-router.post('/', authenticateAdmin, validateProductType, createProduct);
+router.post('/', authenticateAdmin, applyProductValidation, createProduct);
 router.put('/:id', authenticateAdmin, validateId, updateProduct);
 router.delete('/:id', authenticateAdmin, validateId, deleteProduct);
 router.post('/upload-image', authenticateAdmin, upload.single('image'), uploadProductImage);

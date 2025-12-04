@@ -30,8 +30,23 @@ app.use(helmet({
 }));
 
 // CORS configuration - أكثر مرونة
+const allowedOrigins = [
+    config.frontendUrl,
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://getgivora.com',
+    'https://www.getgivora.com'
+];
+
 app.use(cors({
-    origin: config.frontendUrl,
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, curl requests)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS not allowed'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
