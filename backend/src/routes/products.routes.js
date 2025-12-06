@@ -10,6 +10,7 @@ import {
 import { authenticate, authenticateAdmin } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import { validateProduct, validateVariableProduct, validateId } from '../utils/validators.js';
+import { validationResult } from 'express-validator'; // أضف هذا الاستيراد
 
 const router = express.Router();
 
@@ -17,25 +18,49 @@ const router = express.Router();
 router.get('/', getAllProducts);
 router.get('/:id', validateId, getProductById);
 
-// Admin routes
-// Dynamic validation based on product type - applies correct validator
-const applyProductValidation = (req, res, next) => {
-    const productType = req.body?.productType;
+// Admin routes - الحل الصحيح
+const validateProductType = (req, res, next) => {
+    const productType = req.body?.productType || 'simple';
     const validators = productType === 'variable' ? validateVariableProduct : validateProduct;
     
-    // Apply each validator in the chain
+    // تأكد أن validators مصفوفة
+    if (!Array.isArray(validators)) {
+        return res.status(500).json({
+            success: false,
+            message: 'Validators configuration error'
+        });
+    }
+    
+    // تطبيق جميع validators بالتسلسل
     let index = 0;
-    const executeValidators = () => {
+    const runValidators = () => {
         if (index >= validators.length) {
+            // بعد تطبيق جميع validators، تحقق من الأخطاء
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Validation failed',
+                    errors: errors.array().map(err => ({
+                        field: err.path,
+                        message: err.msg
+                    }))
+                });
+            }
             return next();
         }
+        
         const validator = validators[index++];
-        validator(req, res, executeValidators);
+        validator(req, res, (err) => {
+            if (err) return next(err);
+            runValidators();
+        });
     };
-    executeValidators();
+    
+    runValidators();
 };
 
-router.post('/', authenticateAdmin, applyProductValidation, createProduct);
+router.post('/', authenticateAdmin, validateProductType, createProduct);
 router.put('/:id', authenticateAdmin, validateId, updateProduct);
 router.delete('/:id', authenticateAdmin, validateId, deleteProduct);
 router.post('/upload-image', authenticateAdmin, upload.single('image'), uploadProductImage);

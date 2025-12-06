@@ -9,6 +9,7 @@ export const createSimpleProduct = async (productData, imagesData = null) => {
         category,
         description,
         sku,
+        productType,
         moq,
         retailPrice,
         wholesalePrice,
@@ -24,7 +25,7 @@ export const createSimpleProduct = async (productData, imagesData = null) => {
             category,
             description,
             sku,
-            productType: 'simple',
+            productType: productType || 'simple', // ⚠️ عدل هنا
             moq: parseInt(moq),
             retailPrice: parseFloat(retailPrice),
             wholesalePrice: parseFloat(wholesalePrice),
@@ -57,6 +58,7 @@ export const createVariableProduct = async (productData, variants = [], imagesDa
         category,
         description,
         sku,
+        productType,
         moq,
         retailPrice,
         wholesalePrice,
@@ -78,7 +80,7 @@ export const createVariableProduct = async (productData, variants = [], imagesDa
             category,
             description,
             sku,
-            productType: 'variable',
+            productType: productType || 'variable', // ⚠️ عدل هنا
             moq: parseInt(moq),
             retailPrice: parseFloat(retailPrice),
             wholesalePrice: parseFloat(wholesalePrice),
@@ -153,7 +155,7 @@ export const updateProductData = async (productId, productData, variants = null,
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
     if (cloudinaryId !== undefined) updateData.cloudinaryId = cloudinaryId;
     if (isActive !== undefined) updateData.isActive = isActive;
-    if (productType !== undefined) updateData.productType = productType;
+    if (productType !== undefined) updateData.productType = productType; // ⚠️ عدل هنا
 
     // Handle product images
     if (imagesData !== null) {
