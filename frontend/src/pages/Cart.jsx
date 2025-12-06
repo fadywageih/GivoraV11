@@ -20,8 +20,15 @@ const Cart = () => {
   };
 
   const calculateItemPrice = (item) => {
-    const product = item.product;
-    let price = isWholesale ? product.wholesalePrice : product.retailPrice;
+    let price;
+    if (item.variant) {
+      // If variant is selected, use variant pricing
+      price = isWholesale ? item.variant.wholesalePrice : item.variant.retailPrice;
+    } else {
+      // Otherwise use product pricing
+      const product = item.product;
+      price = isWholesale ? product.wholesalePrice : product.retailPrice;
+    }
     
     if (isWholesale && volumeDiscount > 0) {
       price = price * (1 - volumeDiscount);

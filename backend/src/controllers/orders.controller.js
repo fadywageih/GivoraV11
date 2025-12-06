@@ -31,10 +31,13 @@ export const createOrder = async (req, res, next) => {
     try {
         const { shippingMethod, paymentMethod, stripePaymentId } = req.body;
 
-        // Get user's cart
+        // Get user's cart with variant details
         const cartItems = await prisma.cartItem.findMany({
             where: { userId: req.user.id },
-            include: { product: true }
+            include: {
+                product: true,
+                variant: true
+            }
         });
 
         if (cartItems.length === 0) {
@@ -46,10 +49,11 @@ export const createOrder = async (req, res, next) => {
 
         // Check stock availability for all items
         for (const item of cartItems) {
-            if (item.product.stockQuantity < item.quantity) {
+            const stockToCheck = item.variant ? item.variant.stockQuantity : item.product.stockQuantity;
+            if (stockToCheck < item.quantity) {
                 return res.status(400).json({
                     success: false,
-                    message: `Insufficient stock for ${item.product.name}`
+                    message: `Insufficient stock for ${item.product.name}${item.variant ? ` (${item.variant.variantSku})` : ''}`
                 });
             }
         }
@@ -66,7 +70,10 @@ export const createOrder = async (req, res, next) => {
         const orderItems = [];
 
         for (const item of cartItems) {
-            let price = isWholesale ? item.product.wholesalePrice : item.product.retailPrice;
+            // Use variant pricing if variant is selected, otherwise use product pricing
+            let price = item.variant
+                ? (isWholesale ? item.variant.wholesalePrice : item.variant.retailPrice)
+                : (isWholesale ? item.product.wholesalePrice : item.product.retailPrice);
 
             // Apply volume discount if applicable
             if (volumeDiscount > 0) {
@@ -78,6 +85,7 @@ export const createOrder = async (req, res, next) => {
 
             orderItems.push({
                 productId: item.productId,
+                variantId: item.variantId || null,
                 quantity: item.quantity,
                 unitPrice: price,
                 discountApplied: volumeDiscount
@@ -109,22 +117,36 @@ export const createOrder = async (req, res, next) => {
                 include: {
                     items: {
                         include: {
-                            product: true
+                            product: true,
+                            variant: true
                         }
                     }
                 }
             });
 
-            // Update product stock
+            // Update product/variant stock
             for (const item of cartItems) {
-                await tx.product.update({
-                    where: { id: item.productId },
-                    data: {
-                        stockQuantity: {
-                            decrement: item.quantity
+                if (item.variant) {
+                    // Update variant stock
+                    await tx.productVariant.update({
+                        where: { id: item.variantId },
+                        data: {
+                            stockQuantity: {
+                                decrement: item.quantity
+                            }
                         }
-                    }
-                });
+                    });
+                } else {
+                    // Update product stock
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: {
+                            stockQuantity: {
+                                decrement: item.quantity
+                            }
+                        }
+                    });
+                }
             }
 
             // Update wholesale total units if applicable

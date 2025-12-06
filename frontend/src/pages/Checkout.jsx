@@ -238,8 +238,15 @@ const Checkout = () => {
   const volumeDiscount = getDiscountRate();
 
   const calculateItemPrice = (item) => {
-    const product = item.product;
-    let price = isWholesale ? product.wholesalePrice : product.retailPrice;
+    let price;
+    if (item.variant) {
+      // If variant is selected, use variant pricing
+      price = isWholesale ? item.variant.wholesalePrice : item.variant.retailPrice;
+    } else {
+      // Otherwise use product pricing
+      const product = item.product;
+      price = isWholesale ? product.wholesalePrice : product.retailPrice;
+    }
     if (isWholesale && volumeDiscount > 0) price = price * (1 - volumeDiscount);
     return price;
   };
@@ -356,14 +363,28 @@ const Checkout = () => {
             <div className="lg:col-span-1">
               <div className="bg-gray-50 rounded-lg p-6 sticky top-24">
                 <h3 className="font-bold text-[#0A1F44] mb-4 text-lg">Order Summary</h3>
-                <div className="space-y-3 text-sm mb-4 max-h-60 overflow-y-auto">
+                <div className="space-y-4 text-sm mb-4 max-h-60 overflow-y-auto">
                   {cart.map(item => (
-                    <div key={item.id} className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <img src={item.product.imageUrl} alt="" className="w-8 h-8 object-cover rounded" />
-                        <span>{item.quantity}x {item.product.name}</span>
+                    <div key={item.id} className="border-b pb-3 last:border-b-0">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-start gap-2 flex-1">
+                          <img src={item.product.imageUrl} alt="" className="w-8 h-8 object-cover rounded flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <div className="font-medium text-[#0A1F44]">{item.quantity}x {item.product.name}</div>
+                            {item.variant && (
+                              <div className="text-xs text-gray-600 mt-1 space-y-0.5">
+                                {item.variant.packetSize && (
+                                  <div>Packet Size: <span className="font-medium">{item.variant.packetSize}</span></div>
+                                )}
+                                {item.variant.dimensions && item.variant.dimensions !== 'N/A' && (
+                                  <div>Dimensions: <span className="font-medium">{item.variant.dimensions}</span></div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <span className="font-medium whitespace-nowrap ml-2">${(calculateItemPrice(item) * item.quantity).toFixed(2)}</span>
                       </div>
-                      <span className="font-medium">${(calculateItemPrice(item) * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>

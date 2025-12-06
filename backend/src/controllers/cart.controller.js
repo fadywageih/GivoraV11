@@ -9,7 +9,14 @@ export const getCart = async (req, res, next) => {
         const cartItems = await prisma.cartItem.findMany({
             where: { userId: req.user.id },
             include: {
-                product: true
+                product: {
+                    include: {
+                        variants: {
+                            orderBy: { sortOrder: 'asc' }
+                        }
+                    }
+                },
+                variant: true
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -29,11 +36,14 @@ export const getCart = async (req, res, next) => {
  */
 export const addToCart = async (req, res, next) => {
     try {
-        const { productId, quantity } = req.body;
+        const { productId, quantity, variantId } = req.body;
 
-        // Check if product exists and has enough stock
+        // Check if product exists
         const product = await prisma.product.findUnique({
-            where: { id: String(productId) }
+            where: { id: String(productId) },
+            include: {
+                variants: true
+            }
         });
 
         if (!product) {
@@ -43,19 +53,46 @@ export const addToCart = async (req, res, next) => {
             });
         }
 
-        if (product.stockQuantity < quantity) {
+        // For variable products, check if variant is selected
+        let variantToUse = null;
+        let stockToCheck = product.stockQuantity;
+
+        if (product.productType === 'variable') {
+            if (!variantId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Variant selection is required for variable products'
+                });
+            }
+
+            variantToUse = await prisma.productVariant.findUnique({
+                where: { id: String(variantId) }
+            });
+
+            if (!variantToUse || variantToUse.productId !== product.id) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Selected variant not found'
+                });
+            }
+
+            stockToCheck = variantToUse.stockQuantity;
+        }
+
+        if (stockToCheck < quantity) {
             return res.status(400).json({
                 success: false,
                 message: 'Insufficient stock available'
             });
         }
 
-        // Check if item already in cart
+        // Check if item already in cart (with same variant if applicable)
         const existingItem = await prisma.cartItem.findUnique({
             where: {
-                userId_productId: {
+                userId_productId_variantId: {
                     userId: req.user.id,
-                    productId: String(productId)
+                    productId: String(productId),
+                    variantId: variantId ? String(variantId) : null
                 }
             }
         });
@@ -70,7 +107,14 @@ export const addToCart = async (req, res, next) => {
                     quantity: existingItem.quantity + quantity
                 },
                 include: {
-                    product: true
+                    product: {
+                        include: {
+                            variants: {
+                                orderBy: { sortOrder: 'asc' }
+                            }
+                        }
+                    },
+                    variant: true
                 }
             });
         } else {
@@ -79,10 +123,18 @@ export const addToCart = async (req, res, next) => {
                 data: {
                     userId: req.user.id,
                     productId: String(productId),
+                    variantId: variantId ? String(variantId) : null,
                     quantity
                 },
                 include: {
-                    product: true
+                    product: {
+                        include: {
+                            variants: {
+                                orderBy: { sortOrder: 'asc' }
+                            }
+                        }
+                    },
+                    variant: true
                 }
             });
         }
@@ -106,10 +158,13 @@ export const updateCartItem = async (req, res, next) => {
     const { itemId } = req.params;
     const { quantity } = req.body;
 
-    // Get cart item
+    // Get cart item with variant
     const cartItem = await prisma.cartItem.findUnique({
       where: { id: itemId },
-      include: { product: true }
+      include: {
+        product: true,
+        variant: true
+      }
     });
 
     if (!cartItem) {
@@ -136,8 +191,12 @@ export const updateCartItem = async (req, res, next) => {
       });
     }
 
-    // Check stock
-    if (cartItem.product.stockQuantity < quantity) {
+    // Check stock - use variant stock if variant is selected, otherwise product stock
+    const availableStock = cartItem.variant 
+      ? cartItem.variant.stockQuantity 
+      : cartItem.product.stockQuantity;
+
+    if (availableStock < quantity) {
       return res.status(400).json({
         success: false,
         message: 'Insufficient stock available'
@@ -148,7 +207,16 @@ export const updateCartItem = async (req, res, next) => {
     const updatedItem = await prisma.cartItem.update({
       where: { id: itemId },
       data: { quantity },
-      include: { product: true }
+      include: {
+        product: {
+          include: {
+            variants: {
+              orderBy: { sortOrder: 'asc' }
+            }
+          }
+        },
+        variant: true
+      }
     });
 
     res.json({
