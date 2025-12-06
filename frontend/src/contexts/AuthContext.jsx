@@ -251,7 +251,7 @@ export const AuthProvider = ({ children }) => {
     return 0;
   };
 
-  const addToCart = async (product, quantity = 1) => {
+  const addToCart = async (product, quantity = 1, variantId = null) => {
     if (!user) {
       toast({
         title: 'Login Required',
@@ -261,17 +261,30 @@ export const AuthProvider = ({ children }) => {
       return;
     }
     try {
-      await cartAPI.add(product.id, quantity);
+      console.log('🛒 Adding to cart:', { productId: product.id, quantity, variantId });
+      await cartAPI.add(product.id, quantity, variantId);
       refreshCart(user.id);
       toast({
         title: 'Added to Cart',
-        description: `${product.name} added to your cart.`,
+        description: `${quantity} x ${product.name} added to your cart.`,
       });
     } catch (error) {
       console.error('Add to cart error:', error);
+      
+      // Extract error message from response
+      let errorMsg = 'Failed to add item to cart.';
+      if (error && error.errors && Array.isArray(error.errors)) {
+        errorMsg = error.errors.map(e => e.message).join(', ');
+        console.error('Validation errors:', error.errors);
+      } else if (error && error.message) {
+        errorMsg = error.message;
+      }
+      
+      console.error('Final error message:', errorMsg);
+      
       toast({
         title: 'Error',
-        description: 'Failed to add item to cart.',
+        description: errorMsg,
         variant: 'destructive',
       });
     }

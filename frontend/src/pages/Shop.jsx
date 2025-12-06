@@ -72,6 +72,13 @@ const Shop = () => {
       return;
     }
 
+    // If product has variants, navigate to product detail page for variant selection
+    if (product.productType === 'variable' && product.variants?.length > 0) {
+      navigate(`/product/${product.id}`);
+      return;
+    }
+
+    // For simple products, add directly to cart
     const minQty = isWholesale ? Math.max(3, product.moq || 3) : 1;
     const quantity = Math.max(qty, minQty);
 
@@ -84,9 +91,7 @@ const Shop = () => {
       return;
     }
 
-    for (let i = 0; i < quantity; i++) {
-      addToCart(product);
-    }
+    addToCart(product, quantity);
     
     toast({
       title: "Added to Cart",

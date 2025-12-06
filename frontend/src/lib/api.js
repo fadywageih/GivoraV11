@@ -57,6 +57,25 @@ api.interceptors.response.use(
                 window.location.href = '/login';
             }
         }
+        
+        // Log full error details for debugging
+        if (error.response?.status === 400) {
+            console.error('400 Bad Request Details:', {
+                url: error.config?.url,
+                method: error.config?.method,
+                data: error.config?.data,
+                response: error.response?.data
+            });
+            
+            // Log specific errors if available
+            if (error.response?.data?.errors) {
+                console.error('Validation Errors:', error.response.data.errors);
+                error.response.data.errors.forEach(err => {
+                    console.error(`  - Field: ${err.field}, Message: ${err.message}`);
+                });
+            }
+        }
+        
         return Promise.reject(error.response?.data || error.message);
     }
 );
@@ -95,8 +114,15 @@ export const productsAPI = {
 // Cart API
 export const cartAPI = {
     get: () => api.get('/cart'),
-    add: (productId, quantity) => api.post('/cart', { productId, quantity }),
-    update: (itemId, quantity) => api.put(`/cart/${itemId}`, { quantity }),
+    add: (productId, quantity, variantId = null) => {
+        const payload = { 
+            productId: String(productId), 
+            quantity: parseInt(quantity)
+        };
+        if (variantId) payload.variantId = String(variantId);
+        return api.post('/cart', payload);
+    },
+    update: (itemId, quantity) => api.put(`/cart/${itemId}`, { quantity: parseInt(quantity) }),
     remove: (itemId) => api.delete(`/cart/${itemId}`),
     clear: () => api.delete('/cart')
 };

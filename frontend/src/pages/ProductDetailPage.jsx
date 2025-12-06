@@ -111,27 +111,9 @@ const ProductDetailPage = () => {
       return;
     }
 
-    // Create cart item with variant info if applicable
-    const cartItem = {
-      ...product,
-      ...(selectedVariant && { 
-        variantId: selectedVariant.id,
-        variantSku: selectedVariant.variantSku,
-        variantName: `${product.name} - ${selectedVariant.variantSku}`,
-        dimensions: selectedVariant.dimensions,
-        packetSize: selectedVariant.packetSize,
-        price: calculatePrice(selectedVariant),
-        wholesalePrice: selectedVariant.wholesalePrice,
-        retailPrice: selectedVariant.retailPrice,
-        stockQuantity: selectedVariant.stockQuantity
-      })
-    };
-
-    console.log('Adding to cart:', cartItem);
-
-    for (let i = 0; i < finalQuantity; i++) {
-      addToCart(cartItem);
-    }
+    // Add to cart with variant ID if applicable
+    const variantId = selectedVariant?.id || null;
+    addToCart(product, finalQuantity, variantId);
 
     toast({
       title: "Added to Cart",

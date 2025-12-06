@@ -144,8 +144,7 @@ export const validateVariableProduct = [
  */
 export const validateCartItem = [
     body('productId')
-        .isInt()
-        .withMessage('Product ID must be an integer'),
+        .isMongoId().withMessage('Invalid Product ID format'),
     body('quantity')
         .isInt({ min: 1 })
         .withMessage('Quantity must be a positive integer'),
