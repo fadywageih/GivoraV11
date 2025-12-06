@@ -39,7 +39,6 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-<<<<<<< Updated upstream
     origin: function (origin, callback) {
         // Allow requests with no origin (mobile apps, curl requests)
         if (!origin || allowedOrigins.includes(origin)) {
@@ -48,9 +47,7 @@ app.use(cors({
             callback(new Error('CORS not allowed'));
         }
     },
-=======
     origin: ['https://getgivora.com', 'http://localhost:3000'],
->>>>>>> Stashed changes
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']

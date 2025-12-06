@@ -72,16 +72,13 @@ const Shop = () => {
       return;
     }
 
-<<<<<<< Updated upstream
     // If product has variants, navigate to product detail page for variant selection
     if (product.productType === 'variable' && product.variants?.length > 0) {
       navigate(`/product/${product.id}`);
       return;
     }
 
-    // For simple products, add directly to cart
-=======
->>>>>>> Stashed changes
+    // For simple products, add directly to ca
     const minQty = isWholesale ? Math.max(3, product.moq || 3) : 1;
     const quantity = Math.max(qty, minQty);
 
@@ -290,8 +287,7 @@ const Shop = () => {
                       ) : (
                         <button
                           onClick={() => navigate('/login')}
-                          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-primary-foreground h-10 px-4 py-2 flex-1 bg-[#0A1F44] hover:bg-[#0A1F44]/90"
-                        >
+                          className="inline-flex items-center justify-center rounded-md bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-4 py-2 text-sm font-medium hover:from-amber-600 hover:to-yellow-600 transition-all duration-200">
                           Login to Buy
                         </button>
                       )}
