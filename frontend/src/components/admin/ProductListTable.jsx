@@ -141,9 +141,13 @@ const ProductTableRow = ({ product, onEdit, onDelete }) => {
 
       {/* Product Type */}
       <td className="p-4">
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {product.productType === 'variable' && product.variants?.length > 0
-            ? `Variable (${product.variants.length})`
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          product.productType === 'variable' 
+            ? 'bg-purple-100 text-purple-800' 
+            : 'bg-green-100 text-green-800'
+        }`}>
+          {product.productType === 'variable' 
+            ? `Variable${product.variants?.length > 0 ? ` (${product.variants.length})` : ''}`
             : 'Simple'}
         </span>
       </td>

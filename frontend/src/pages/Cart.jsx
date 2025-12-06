@@ -125,11 +125,27 @@ const Cart = () => {
               
               return (
                 <div key={item.id} className="bg-white rounded-lg shadow p-6 flex flex-col sm:flex-row gap-6 items-center">
-                  {/* تم إزالة مكان الصورة تماماً */}
+                  {/* Product Info */}
                   
                   <div className="flex-grow text-center sm:text-left">
                     <h3 className="font-bold text-[#0A1F44] text-lg">{item.product.name}</h3>
-                    <p className="text-sm text-[#0A1F44]/60 mb-2">SKU: {item.product.sku}</p>
+                    <div className="text-sm text-[#0A1F44]/60 mb-3">
+                      <p>SKU: {item.product.sku}</p>
+                      {/* Display variant info if available */}
+                      {item.variant && (
+                        <div className="mt-2 space-y-1">
+                          <p className="font-medium text-[#0A1F44]">
+                            Variant: {item.variant.variantSku}
+                          </p>
+                          {item.variant.dimensions && item.variant.dimensions !== 'N/A' && (
+                            <p>Dimensions: {item.variant.dimensions}</p>
+                          )}
+                          {item.variant.packetSize && (
+                            <p>Packet Size: {item.variant.packetSize}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 mb-2">
                       <p className="font-medium text-[#C9A227]">
                         ${itemPrice.toFixed(2)} 

@@ -33,7 +33,7 @@ export const addToCart = async (req, res, next) => {
 
         // Check if product exists and has enough stock
         const product = await prisma.product.findUnique({
-            where: { id: parseInt(productId) }
+            where: { id: String(productId) }
         });
 
         if (!product) {
@@ -55,7 +55,7 @@ export const addToCart = async (req, res, next) => {
             where: {
                 userId_productId: {
                     userId: req.user.id,
-                    productId: parseInt(productId)
+                    productId: String(productId)
                 }
             }
         });
@@ -78,7 +78,7 @@ export const addToCart = async (req, res, next) => {
             cartItem = await prisma.cartItem.create({
                 data: {
                     userId: req.user.id,
-                    productId: parseInt(productId),
+                    productId: String(productId),
                     quantity
                 },
                 include: {

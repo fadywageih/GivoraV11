@@ -1,5 +1,6 @@
 import Home from '@/pages/Home';
 import Shop from '@/pages/Shop';
+import ProductDetailPage from '@/pages/ProductDetailPage';
 import Cart from '@/pages/Cart';
 import Checkout from '@/pages/Checkout';
 import Profile from '@/pages/Profile';
@@ -40,7 +41,7 @@ function App() {
           </Helmet>
           <div className="min-h-screen flex flex-col bg-white font-body">
             <Routes>
-              {/* Admin Routes - No Header/Footer wrapper for full layout control if desired, but keeping it simple */}
+              {/* Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminLayout />}>
                 <Route path="wholesale" element={<WholesaleApprovals />} />
@@ -56,6 +57,7 @@ function App() {
                     <Routes>
                       <Route path="/" element={<Home />} />
                       <Route path="/shop" element={<Shop />} />
+                      <Route path="/product/:id" element={<ProductDetailPage />} />
                       <Route path="/cart" element={<Cart />} />
                       <Route path="/checkout" element={<Checkout />} />
                       <Route path="/profile" element={<Profile />} />
