@@ -72,6 +72,7 @@ const Shop = () => {
       return;
     }
 
+<<<<<<< Updated upstream
     // If product has variants, navigate to product detail page for variant selection
     if (product.productType === 'variable' && product.variants?.length > 0) {
       navigate(`/product/${product.id}`);
@@ -79,6 +80,8 @@ const Shop = () => {
     }
 
     // For simple products, add directly to cart
+=======
+>>>>>>> Stashed changes
     const minQty = isWholesale ? Math.max(3, product.moq || 3) : 1;
     const quantity = Math.max(qty, minQty);
 
