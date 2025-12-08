@@ -14,8 +14,6 @@ const generateVerificationCode = () => {
 export const register = async (req, res, next) => {
     try {
         const { email, password, accountType, firstName, lastName, phone, address } = req.body;
-
-        // Check if user already exists
         const existingUser = await prisma.user.findUnique({
             where: { email }
         });
@@ -26,12 +24,8 @@ export const register = async (req, res, next) => {
                 message: 'Email already registered'
             });
         }
-
-        // Hash password
         const passwordHash = await hashPassword(password);
         const { verificationCode, verificationCodeExpiry } = generateVerificationCode();
-
-        // Create user
         const user = await prisma.user.create({
             data: {
                 email,
@@ -59,10 +53,7 @@ export const register = async (req, res, next) => {
                 createdAt: true
             }
         });
-        // Send verification email
         await sendVerificationEmail(user, verificationCode);
-
-
         res.status(201).json({
             success: true,
             message: 'Registration successful. Please verify your email.',
@@ -73,30 +64,21 @@ export const register = async (req, res, next) => {
     }
 };
 
-/**
- * Login user
- * POST /api/auth/login
- */
 export const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
-
-        // Find user
         const user = await prisma.user.findUnique({
             where: { email },
             include: {
                 wholesaleApplication: true
             }
         });
-
         if (!user) {
             return res.status(401).json({
                 success: false,
                 message: 'Invalid email or password'
             });
         }
-
-        // Check password
         const isPasswordValid = await comparePassword(password, user.passwordHash);
 
         if (!isPasswordValid) {
@@ -105,23 +87,17 @@ export const login = async (req, res, next) => {
                 message: 'Invalid email or password'
             });
         }
-
-        // Check if email is verified
         if (!user.isVerified) {
             return res.status(403).json({
                 success: false,
                 message: 'Please verify your email address before logging in.'
             });
         }
-
-        // Generate JWT token
         const token = generateToken({
             userId: user.id,
             email: user.email,
             accountType: user.accountType
         });
-
-        // Prepare user data
         const userData = {
             id: user.id,
             email: user.email,
@@ -134,8 +110,6 @@ export const login = async (req, res, next) => {
             approved: user.approved,
             createdAt: user.createdAt
         };
-
-        // Add wholesale details if applicable
         if (user.wholesaleApplication) {
             userData.wholesaleDetails = {
                 approvalStatus: user.wholesaleApplication.approvalStatus,
@@ -209,11 +183,6 @@ export const verifyEmail = async (req, res, next) => {
         next(error);
     }
 };
-
-/**
- * Get current user profile
- * GET /api/auth/me
- */
 export const getProfile = async (req, res, next) => {
     try {
         const user = await prisma.user.findUnique({
@@ -242,10 +211,6 @@ export const getProfile = async (req, res, next) => {
     }
 };
 
-/**
- * Update user profile
- * PUT /api/auth/profile
- */
 export const updateProfile = async (req, res, next) => {
     try {
         const { firstName, lastName, phone, address } = req.body;
@@ -282,10 +247,6 @@ export const updateProfile = async (req, res, next) => {
     }
 };
 
-/**
- * Request password reset
- * POST /api/auth/forgot-password
- */
 export const forgotPassword = async (req, res, next) => {
     try {
         const { email } = req.body;
@@ -295,18 +256,13 @@ export const forgotPassword = async (req, res, next) => {
         });
 
         if (!user) {
-            // Don't reveal if email exists
             return res.json({
                 success: true,
                 message: 'If the email exists, a password reset link has been sent.'
             });
         }
-
-        // Generate reset token
         const resetToken = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + 3600000); // 1 hour
-
-        // Save token to database
         await prisma.passwordResetToken.create({
             data: {
                 userId: user.id,
@@ -314,8 +270,6 @@ export const forgotPassword = async (req, res, next) => {
                 expiresAt
             }
         });
-
-        // In production, send email with reset link
         await sendPasswordResetEmail(user, resetToken);
         res.json({
             success: true,
@@ -327,15 +281,9 @@ export const forgotPassword = async (req, res, next) => {
     }
 };
 
-/**
- * Reset password with token
- * POST /api/auth/reset-password
- */
 export const resetPassword = async (req, res, next) => {
     try {
         const { token, password } = req.body;
-
-        // Find valid token
         const resetToken = await prisma.passwordResetToken.findFirst({
             where: {
                 token,
@@ -354,17 +302,12 @@ export const resetPassword = async (req, res, next) => {
                 message: 'Invalid or expired reset token'
             });
         }
-
-        // Hash new password
         const passwordHash = await hashPassword(password);
-
-        // Update user password
         await prisma.user.update({
             where: { id: resetToken.userId },
             data: { passwordHash }
         });
 
-        // Delete used token
         await prisma.passwordResetToken.delete({
             where: { id: resetToken.id }
         });
@@ -377,16 +320,9 @@ export const resetPassword = async (req, res, next) => {
         next(error);
     }
 };
-
-/**
- * Admin login
- * POST /api/admin/login
- */
 export const adminLogin = async (req, res, next) => {
     try {
         const { email, password } = req.body;
-        
-        // Check against admin accounts with case-insensitive email comparison
         const admin = config.adminAccounts.find(
             acc => acc.email.toLowerCase() === email.toLowerCase() && acc.password === password
         );
@@ -398,8 +334,6 @@ export const adminLogin = async (req, res, next) => {
                 message: 'Invalid admin credentials'
             });
         }
-
-        // Generate admin token
         const token = generateToken({
             email: admin.email,
             role: 'admin'
@@ -417,14 +351,9 @@ export const adminLogin = async (req, res, next) => {
         next(error);
     }
 };
-
-/**
- * Create a generic token
- * POST /api/auth/create-token
- */
 export const createToken = async (req, res, next) => {
     try {
-        const { userId, type = 'generic', expiresIn = 3600 } = req.body; // Default 1 hour
+        const { userId, type = 'generic', expiresIn = 3600 } = req.body;
 
         const tokenString = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + expiresIn * 1000);
@@ -446,11 +375,6 @@ export const createToken = async (req, res, next) => {
         next(error);
     }
 };
-
-/**
- * Consume (use) a token
- * POST /api/auth/consume-token
- */
 export const consumeToken = async (req, res, next) => {
     try {
         const { token } = req.body;
@@ -473,8 +397,6 @@ export const consumeToken = async (req, res, next) => {
                 message: 'Token expired'
             });
         }
-
-        // Token is valid, consume it (delete it)
         await prisma.token.delete({
             where: { id: tokenRecord.id }
         });
@@ -489,10 +411,6 @@ export const consumeToken = async (req, res, next) => {
     }
 };
 
-/**
- * Verify a token without consuming it
- * POST /api/auth/verify-token
- */
 export const verifyToken = async (req, res, next) => {
     try {
         const { token } = req.body;
@@ -510,8 +428,6 @@ export const verifyToken = async (req, res, next) => {
         }
 
         if (tokenRecord.expiresAt < new Date()) {
-            // Optional: cleanup expired token
-            // await prisma.token.delete({ where: { id: tokenRecord.id } });
             return res.status(400).json({
                 success: false,
                 message: 'Token expired'
@@ -537,24 +453,15 @@ export const verifyToken = async (req, res, next) => {
         next(error);
     }
 };
-
-
-
 import { OAuth2Client } from 'google-auth-library';
-
 const client = new OAuth2Client(
     config.google.clientId,
     config.google.clientSecret,
     'postmessage'
 );
-
-/**
- * Login with Google
- * POST /api/auth/login-with-google
- */
 export const loginWithGoogle = async (req, res, next) => {
     try {
-        const { code } = req.body; // Google Authorization Code
+        const { code } = req.body; 
 
         if (!code) {
             return res.status(400).json({
@@ -562,12 +469,8 @@ export const loginWithGoogle = async (req, res, next) => {
                 message: 'Authorization code is required'
             });
         }
-
-        // Exchange code for tokens
         const { tokens } = await client.getToken(code);
         const idToken = tokens.id_token;
-
-        // Verify the token with Google
         const ticket = await client.verifyIdToken({
             idToken: idToken,
             audience: config.google.clientId,

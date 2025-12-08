@@ -232,17 +232,14 @@ const ProductManagement = () => {
           throw new Error(validationErrors.join(', '));
         }
 
-        console.log('🚀 Starting product submission...');
         let productImages = [];
 
         // Upload new images
         if (selectedImages.length > 0) {
-          console.log('📤 Uploading images...');
           productImages = await uploadImagesToServer(
             selectedImages,
             adminAPI.uploadProductImage
           );
-          console.log('✅ Uploaded images:', productImages);
         }
 
         // Format product data
@@ -251,7 +248,6 @@ const ProductManagement = () => {
           variants,
           productImages
         );
-        console.log('📦 Final product data to send:', productData);
 
         // Create or update
         if (currentProduct) {

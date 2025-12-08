@@ -98,7 +98,6 @@ app.use(errorHandler);
 const PORT = config.port;
 
 app.listen(PORT, () => {
-    console.log('');
     console.log('🚀 Givora Backend Server Started');
     console.log('================================');
     console.log(`📡 Server running on port: ${PORT}`);
@@ -111,12 +110,10 @@ app.listen(PORT, () => {
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-    console.log('SIGTERM signal received: closing HTTP server');
     process.exit(0);
 });
 
 process.on('SIGINT', () => {
-    console.log('SIGINT signal received: closing HTTP server');
     process.exit(0);
 });
 

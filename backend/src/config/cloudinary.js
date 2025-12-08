@@ -6,7 +6,6 @@ if (config.cloudinary.cloudName && config.cloudinary.apiKey && config.cloudinary
         api_key: config.cloudinary.apiKey,
         api_secret: config.cloudinary.apiSecret,
         secure: true
-
     });
 } else {
 }

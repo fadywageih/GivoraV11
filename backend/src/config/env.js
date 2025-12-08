@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-
 dotenv.config();
 export const config = {
   port: process.env.PORT || 5000,
@@ -24,14 +23,13 @@ export const config = {
     folder: process.env.CLOUDINARY_FOLDER || 'givora/products'
   },
   upload: {
-    maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880, // 5MB
-    uploadDir: process.env.UPLOAD_DIR || './uploads/products'
+    maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880, 
   },
   email: {
-    host: process.env.SMTP_HOST || 'smtp.gmail.com', // إضافة قيمة افتراضية
+    host: process.env.SMTP_HOST || 'smtp.gmail.com', 
     port: parseInt(process.env.SMTP_PORT) || 587,
-    user: process.env.EMAIL_USER || process.env.SMTP_USER, // استخدام EMAIL_USER من .env
-    pass: process.env.EMAIL_PASS || process.env.SMTP_PASS, // استخدام EMAIL_PASS من .env
+    user: process.env.EMAIL_USER || process.env.SMTP_USER,
+    pass: process.env.EMAIL_PASS || process.env.SMTP_PASS,
     from: process.env.EMAIL_FROM || 'noreply@givora.com'
   },
   stripe: {

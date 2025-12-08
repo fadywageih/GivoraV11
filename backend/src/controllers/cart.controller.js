@@ -1,9 +1,4 @@
 import prisma from '../config/database.js';
-
-/**
- * Get user's cart
- * GET /api/cart
- */
 export const getCart = async (req, res, next) => {
     try {
         const cartItems = await prisma.cartItem.findMany({
@@ -29,31 +24,21 @@ export const getCart = async (req, res, next) => {
         next(error);
     }
 };
-
-/**
- * Add item to cart
- * POST /api/cart
- */
 export const addToCart = async (req, res, next) => {
     try {
         const { productId, quantity, variantId } = req.body;
-
-        // Check if product exists
         const product = await prisma.product.findUnique({
             where: { id: String(productId) },
             include: {
                 variants: true
             }
         });
-
         if (!product) {
             return res.status(404).json({
                 success: false,
                 message: 'Product not found'
             });
         }
-
-        // For variable products, check if variant is selected
         let variantToUse = null;
         let stockToCheck = product.stockQuantity;
 
@@ -85,22 +70,36 @@ export const addToCart = async (req, res, next) => {
                 message: 'Insufficient stock available'
             });
         }
-
-        // Check if item already in cart (with same variant if applicable)
-        const existingItem = await prisma.cartItem.findUnique({
-            where: {
-                userId_productId_variantId: {
+        
+        // For simple products (no variantId), search by userId and productId
+        // For variable products, search by userId, productId, and variantId
+        let existingItem;
+        
+        if (product.productType === 'simple') {
+            // Simple product: find by userId and productId, with variantId null
+            existingItem = await prisma.cartItem.findFirst({
+                where: {
                     userId: req.user.id,
                     productId: String(productId),
-                    variantId: variantId ? String(variantId) : null
+                    variantId: null
                 }
-            }
-        });
+            });
+        } else {
+            // Variable product: use unique constraint
+            existingItem = await prisma.cartItem.findUnique({
+                where: {
+                    userId_productId_variantId: {
+                        userId: req.user.id,
+                        productId: String(productId),
+                        variantId: String(variantId)
+                    }
+                }
+            });
+        }
 
         let cartItem;
 
         if (existingItem) {
-            // Update quantity
             cartItem = await prisma.cartItem.update({
                 where: { id: existingItem.id },
                 data: {
@@ -118,7 +117,6 @@ export const addToCart = async (req, res, next) => {
                 }
             });
         } else {
-            // Create new cart item
             cartItem = await prisma.cartItem.create({
                 data: {
                     userId: req.user.id,
@@ -149,10 +147,6 @@ export const addToCart = async (req, res, next) => {
     }
 };
 
-/**
- * Update cart item quantity
- * PUT /api/cart/:itemId
- */
 export const updateCartItem = async (req, res, next) => {
   try {
     const { itemId } = req.params;

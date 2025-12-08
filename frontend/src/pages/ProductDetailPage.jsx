@@ -27,8 +27,6 @@ const ProductDetailPage = () => {
         setLoading(true);
         const response = await productsAPI.getById(id);
         const productData = response.data.product;
-        console.log('Product data:', productData);
-        console.log('Variants:', productData.variants);
         
         setProduct(productData);
         

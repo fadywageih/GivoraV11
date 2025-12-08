@@ -60,9 +60,7 @@ export const sendPasswordResetEmail = async (user, resetToken) => {
         };
 
         await transporter.sendMail(mailOptions);
-        console.log('Password reset email sent to:', user.email);
     } catch (error) {
-        console.error('Error sending password reset email:', error);
     }
 };
 export const sendWholesaleWelcomeEmail = async (user, businessName) => {
@@ -106,7 +104,6 @@ export const sendWholesaleWelcomeEmail = async (user, businessName) => {
         };
 
         await transporter.sendMail(mailOptions);
-        console.log('Wholesale welcome email sent to:', user.email);
         
     } catch (error) {
         console.error('Error sending wholesale welcome email:', error);

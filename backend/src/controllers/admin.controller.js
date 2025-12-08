@@ -1,6 +1,5 @@
 import prisma from '../config/database.js';
-import { sendWholesaleWelcomeEmail } from '../utils/email.js'; // ✅ استيراد الدالة الجديدة
-
+import { sendWholesaleWelcomeEmail } from '../utils/email.js';
 export const getDashboardStats = async (req, res, next) => {
     try {
         const [
@@ -34,7 +33,6 @@ export const getDashboardStats = async (req, res, next) => {
                 }
             })
         ]);
-
         res.json({
             success: true,
             data: {
@@ -52,12 +50,14 @@ export const getDashboardStats = async (req, res, next) => {
         next(error);
     }
 };
-
 export const getAdminProducts = async (req, res, next) => {
     try {
         const products = await prisma.product.findMany({
             include: {
                 productImages: {
+                    orderBy: { sortOrder: 'asc' }
+                },
+                variants: {
                     orderBy: { sortOrder: 'asc' }
                 }
             },
@@ -283,7 +283,6 @@ export const updateOrderStatus = async (req, res, next) => {
         next(error);
     }
 };
-
 export const getAllUsers = async (req, res, next) => {
     try {
         const { accountType } = req.query;
@@ -317,13 +316,9 @@ export const getAllUsers = async (req, res, next) => {
         next(error);
     }
 };
-
-// ✅ أضف هذه الدالة الجديدة
 export const sendWholesaleWelcomeEmailController = async (req, res, next) => {
     try {
         const { id } = req.params;
-
-        // 1. احصل على بيانات الطلب والمستخدم
         const application = await prisma.wholesaleApplication.findUnique({
             where: { id },
             include: {
@@ -337,23 +332,18 @@ export const sendWholesaleWelcomeEmailController = async (req, res, next) => {
                 }
             }
         });
-
         if (!application) {
             return res.status(404).json({
                 success: false,
                 message: 'Application not found'
             });
         }
-
-        // 2. تأكد أن الطلب تمت الموافقة عليه
         if (application.approvalStatus !== 'approved') {
             return res.status(400).json({
                 success: false,
                 message: 'Cannot send welcome email for non-approved application'
             });
         }
-
-        // 3. أرسل البريد الإلكتروني الترحيبي
         await sendWholesaleWelcomeEmail(application.user, application.businessName);
 
         res.json({

@@ -17,7 +17,6 @@ const Profile = () => {
   useEffect(() => {
     if (loading) return;
     if (user) {
-      console.log(user);
       ordersAPI.getAll().then((res) => {
         setOrders(res.data.orders);
       });

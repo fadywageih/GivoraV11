@@ -16,7 +16,6 @@ const WholesaleApprovals = () => {
   const loadApps = async () => {
     try {
       const res = await adminAPI.getWholesaleApplications();
-      console.log(res?.data?.applications);
       setApplications(res?.data?.applications);
     } catch (error) {
       console.error(error);

@@ -62,7 +62,6 @@ const Login = () => {
       return;
     }
     try {
-      console.log(verificationEmail, verificationCode);
       const success = await verifyEmail(verificationEmail, verificationCode);
       if (success) {
         toast({
