@@ -71,30 +71,15 @@ export const addToCart = async (req, res, next) => {
             });
         }
         
-        // For simple products (no variantId), search by userId and productId
-        // For variable products, ALWAYS require variantId to keep them separate
-        let existingItem;
-        
-        if (product.productType === 'simple') {
-            // Simple product: find by userId and productId, with variantId null
-            existingItem = await prisma.cartItem.findFirst({
-                where: {
-                    userId: req.user.id,
-                    productId: String(productId),
-                    variantId: null
-                }
-            });
-        } else {
-            // Variable product: ALWAYS use variantId (already validated above)
-            // This ensures each variant combination is stored separately
-            existingItem = await prisma.cartItem.findFirst({
-                where: {
-                    userId: req.user.id,
-                    productId: String(productId),
-                    variantId: String(variantId)
-                }
-            });
-        }
+        // For both simple and variable products, search by userId and productId
+        // Then check variantId separately
+        let existingItem = await prisma.cartItem.findFirst({
+            where: {
+                userId: req.user.id,
+                productId: String(productId),
+                variantId: variantId ? String(variantId) : null
+            }
+        });
 
         let cartItem;
 
