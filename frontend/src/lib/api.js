@@ -39,9 +39,20 @@ api.interceptors.request.use(
 
 // Response interceptor for error handling
 api.interceptors.response.use(
-    (response) => response.data,
+    (response) => {
+        // Log successful responses for debugging
+        if (response.config?.url?.includes('/cart')) {
+            console.log('🛒 Cart API Response:', response.data);
+        }
+        return response.data;
+    },
     (error) => {
-        console.error('API Error:', error.response?.data || error.message);
+        console.error('❌ API Error:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            status: error.response?.status,
+            data: error.response?.data
+        });
         
         if (error.response?.status === 401) {
             // Check if this was an admin route
@@ -58,28 +69,15 @@ api.interceptors.response.use(
             }
         }
         
-        // Log full error details for debugging
-        if (error.response?.status === 400) {
-            console.error('400 Bad Request Details:', {
-                url: error.config?.url,
-                method: error.config?.method,
-                data: error.config?.data,
-                response: error.response?.data
-            });
-            
-            // Log specific errors if available
-            if (error.response?.data?.errors) {
-                console.error('Validation Errors:', error.response.data.errors);
-                error.response.data.errors.forEach(err => {
-                    console.error(`  - Field: ${err.field}, Message: ${err.message}`);
-                });
-            }
-        }
+        // Return a clean error object
+        const errorData = error.response?.data || {
+            success: false,
+            message: error.message || 'Network error occurred'
+        };
         
-        return Promise.reject(error.response?.data || error.message);
+        return Promise.reject(errorData);
     }
 );
-
 // Auth API
 export const authAPI = {
     register: (data) => api.post('/auth/register', data),

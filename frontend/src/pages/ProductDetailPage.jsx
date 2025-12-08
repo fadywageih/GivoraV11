@@ -85,39 +85,66 @@ const ProductDetailPage = () => {
     return isWholesale ? Math.max(3, baseMoq) : Math.max(1, baseMoq);
   };
 
-  const handleAddToCart = () => {
+// في ملف ProductDetailPage.jsx، قم بتحديث دالة handleAddToCart فقط:
+const handleAddToCart = async () => {
     if (!user) {
-      toast({
-        title: "Login Required",
-        description: "Please login to add items to cart",
-        variant: "destructive"
-      });
-      navigate('/login');
-      return;
+        toast({
+            title: "Login Required",
+            description: "Please login to add items to cart",
+            variant: "destructive"
+        });
+        navigate('/login');
+        return;
     }
 
-    const minQty = getMinQty();
-    const finalQuantity = Math.max(quantity, minQty);
+    try {
+        const minQty = getMinQty();
+        const finalQuantity = Math.max(quantity, minQty);
 
-    if (isWholesale && quantity < minQty) {
-      toast({
-        title: "Minimum Quantity Required",
-        description: `Wholesale customers must order at least ${minQty} units.`,
-        variant: "destructive"
-      });
-      setQuantity(minQty);
-      return;
+        if (isWholesale && quantity < minQty) {
+            toast({
+                title: "Minimum Quantity Required",
+                description: `Wholesale customers must order at least ${minQty} units.`,
+                variant: "destructive"
+            });
+            setQuantity(minQty);
+            return;
+        }
+
+        console.log('🛒 Preparing to add to cart:', {
+            productId: product.id,
+            productName: product.name,
+            variantId: selectedVariant?.id,
+            quantity: finalQuantity,
+            isWholesale
+        });
+
+        // Add to cart with variant ID if applicable
+        const variantId = selectedVariant?.id || null;
+        await addToCart(product, finalQuantity, variantId);
+
+        toast({
+            title: "Added to Cart",
+            description: `${finalQuantity} x ${selectedVariant ? selectedVariant.variantSku : product.name} has been added to your cart`,
+        });
+    } catch (error) {
+        console.error('❌ Error adding to cart:', error);
+        
+        let errorMessage = "Failed to add item to cart. Please try again.";
+        
+        if (error.message) {
+            errorMessage = error.message;
+        } else if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        }
+        
+        toast({
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive"
+        });
     }
-
-    // Add to cart with variant ID if applicable
-    const variantId = selectedVariant?.id || null;
-    addToCart(product, finalQuantity, variantId);
-
-    toast({
-      title: "Added to Cart",
-      description: `${finalQuantity} x ${selectedVariant ? selectedVariant.variantSku : product.name} has been added to your cart`,
-    });
-  };
+};
 
   const increaseQuantity = () => {
     setQuantity(prev => prev + 1);

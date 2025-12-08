@@ -22,16 +22,42 @@ export const AuthProvider = ({ children }) => {
   const { toast } = useToast();
 
   const refreshCart = async (userId) => {
-    if (!userId) return;
+    if (!userId) {
+      console.log('⚠️ No user ID provided to refreshCart');
+      return;
+    }
+    
     try {
+      console.log('🔄 Refreshing cart for user:', userId);
       const res = await cartAPI.get();
-      if (res.success && res.data.cartItems) {
-        setCart(res.data.cartItems);
+      console.log('📦 Cart API Response:', res);
+      
+      // محاولة التعامل مع مختلف أشكال الاستجابة
+      let cartItems = [];
+      
+      if (res && typeof res === 'object') {
+        if (res.data && res.data.cartItems) {
+          cartItems = res.data.cartItems;
+        } else if (res.cartItems) {
+          cartItems = res.cartItems;
+        } else if (Array.isArray(res)) {
+          cartItems = res;
+        } else if (res.success && res.data) {
+          // محاولة العثور على cartItems في بنية البيانات
+          cartItems = res.data.cartItems || res.data.items || [];
+        }
+      }
+      
+      console.log('🛒 Cart items after parsing:', cartItems);
+      
+      if (cartItems && Array.isArray(cartItems)) {
+        setCart(cartItems);
       } else {
+        console.warn('⚠️ Cart items not found or invalid format:', res);
         setCart([]);
       }
     } catch (error) {
-      console.error('Failed to refresh cart:', error);
+      console.error('❌ Failed to refresh cart:', error);
       setCart([]);
     }
   };
@@ -47,8 +73,9 @@ export const AuthProvider = ({ children }) => {
           if (res.success && res.data.user) {
             const dbUser = res.data.user;
             setUser(dbUser);
-            refreshCart(dbUser.id);
-            if (dbUser.account_type === 'wholesale') {
+            await refreshCart(dbUser.id);
+            
+            if (dbUser.accountType === 'wholesale') {
               try {
                 const details = await wholesaleAPI.getStatus();
                 setWholesaleDetails(details);
@@ -63,6 +90,7 @@ export const AuthProvider = ({ children }) => {
           console.error('User session verification failed:', e);
           localStorage.removeItem('givora_session_token');
           setUser(null);
+          setCart([]);
         }
       }
 
@@ -95,23 +123,29 @@ export const AuthProvider = ({ children }) => {
 
   // === وظائف تسجيل الدخول والتسجيل ===
   const login = async (email, password) => {
-    const res = await authAPI.login({ email, password });
-    if (res.success) {
-      const { token, user: dbUser } = res.data;
-      localStorage.setItem('givora_session_token', token);
-      setUser(dbUser);
-      refreshCart(dbUser.id);
-      if (dbUser.account_type === 'wholesale') {
-        try {
-          const details = await wholesaleAPI.getStatus();
-          setWholesaleDetails(details);
-        } catch (err) {
-          console.error('Failed to fetch wholesale details', err);
+    try {
+      const res = await authAPI.login({ email, password });
+      if (res.success) {
+        const { token, user: dbUser } = res.data;
+        localStorage.setItem('givora_session_token', token);
+        setUser(dbUser);
+        await refreshCart(dbUser.id);
+        
+        if (dbUser.accountType === 'wholesale') {
+          try {
+            const details = await wholesaleAPI.getStatus();
+            setWholesaleDetails(details);
+          } catch (err) {
+            console.error('Failed to fetch wholesale details', err);
+          }
         }
+        return dbUser;
+      } else {
+        throw new Error(res.message || 'Login failed');
       }
-      return dbUser;
-    } else {
-      throw new Error(res.message || 'Login failed');
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
   };
 
@@ -161,7 +195,7 @@ export const AuthProvider = ({ children }) => {
           const { token, user: dbUser } = res.data;
           localStorage.setItem('givora_session_token', token);
           setUser(dbUser);
-          refreshCart(dbUser.id);
+          await refreshCart(dbUser.id);
           if (googleLoginResolver) googleLoginResolver.resolve(dbUser);
         } else {
           throw new Error(res.message || 'Google login failed');
@@ -244,7 +278,7 @@ export const AuthProvider = ({ children }) => {
 
   // === السلة والخصومات ===
   const getDiscountRate = () => {
-    if (!user || user.account_type !== 'wholesale' || !user.approved) return 0;
+    if (!user || user.accountType !== 'wholesale' || !user.approved) return 0;
     if (wholesaleDetails && wholesaleDetails.total_units_ordered > 10000) {
       return 0.1;
     }
@@ -260,10 +294,18 @@ export const AuthProvider = ({ children }) => {
       });
       return;
     }
+    
     try {
-      console.log('🛒 Adding to cart:', { productId: product.id, quantity, variantId });
+      console.log('🛒 Adding to cart via API:', { 
+        productId: product.id, 
+        quantity, 
+        variantId,
+        userId: user.id 
+      });
+      
       await cartAPI.add(product.id, quantity, variantId);
-      refreshCart(user.id);
+      await refreshCart(user.id);
+      
       toast({
         title: 'Added to Cart',
         description: `${quantity} x ${product.name} added to your cart.`,
@@ -278,6 +320,8 @@ export const AuthProvider = ({ children }) => {
         console.error('Validation errors:', error.errors);
       } else if (error && error.message) {
         errorMsg = error.message;
+      } else if (typeof error === 'string') {
+        errorMsg = error;
       }
       
       console.error('Final error message:', errorMsg);
@@ -293,7 +337,7 @@ export const AuthProvider = ({ children }) => {
   const removeFromCart = async (itemId) => {
     try {
       await cartAPI.remove(itemId);
-      refreshCart(user.id);
+      await refreshCart(user.id);
     } catch (error) {
       console.error('Remove from cart error:', error);
     }
@@ -302,7 +346,7 @@ export const AuthProvider = ({ children }) => {
   const updateCartQuantity = async (itemId, quantity) => {
     try {
       await cartAPI.update(itemId, quantity);
-      refreshCart(user.id);
+      await refreshCart(user.id);
     } catch (error) {
       console.error('Update cart error:', error);
     }
@@ -322,7 +366,7 @@ export const AuthProvider = ({ children }) => {
   const isUserWholesale = () => {
     if (!user) return false;
     
-    const accountType = user.account_type || user.accountType;
+    const accountType = user.accountType || user.account_type;
     const approved = user.approved;
     
     console.log('🔍 Checking wholesale status:', {
@@ -357,7 +401,7 @@ export const AuthProvider = ({ children }) => {
     updateCartQuantity,
     clearCart,
     refreshCart,
-    isUserWholesale, // ✅ مضافة هنا
+    isUserWholesale,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
