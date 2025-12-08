@@ -38,8 +38,7 @@ const Shop = () => {
     fetchProducts();
   }, [toast]);
 
-  const categories = ['all', 'Tissue', 'Paper Towels', 'Gloves', 'Garbage Bags', 'Underpads', 'Cups', 'Paper Bags'];
-
+  const categories = ['all', 'Tissue', 'Paper Towels', 'Gloves', 'Garbage Bags', 'Medical', 'Cups', 'Paper Bags', 'Pizza Box', 'Ballets'];
   const filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     const matchesSearch = searchQuery === '' || 
