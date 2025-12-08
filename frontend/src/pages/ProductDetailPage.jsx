@@ -193,14 +193,14 @@ const ProductDetailPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Left Column - Images - FIXED */}
               <div className="p-6 lg:p-8">
-                {/* Main Image Container - خلفية فاتحة */}
-                <div className="bg-gray-50 rounded-2xl p-4 flex items-center justify-center h-[450px] mb-6">
+                {/* Main Image Container - Fill div with 2px border */}
+                <div className="bg-gray-50 rounded-2xl border-2 border-gray-300 flex items-center justify-center h-[450px] mb-6 overflow-hidden">
                   {mainImage && !imageError ? (
                     <div className="relative w-full h-full flex items-center justify-center">
                       <img
                         src={mainImage}
                         alt={product.name}
-                        className="max-w-full max-h-full object-contain"
+                        className="w-full h-full object-cover"
                         onError={handleImageError}
                         loading="lazy"
                       />

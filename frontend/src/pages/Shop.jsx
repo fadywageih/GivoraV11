@@ -38,7 +38,7 @@ const Shop = () => {
     fetchProducts();
   }, [toast]);
 
-  const categories = ['all', 'Tissue', 'Paper Towels', 'Gloves', 'Garbage Bags', 'Medical', 'Cups', 'Paper Bags', 'Pizza Box', 'Ballets'];
+  const categories = ['all', 'Tissue', 'Restaurant', 'Gloves', 'Garbage Bags', 'Medical', 'Cups', 'Paper Bags', 'Pizza Box', ];
   const filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     const matchesSearch = searchQuery === '' || 
@@ -181,9 +181,9 @@ const Shop = () => {
             
             return (
               <div key={product.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-[500px]">
-                {/* Image Container - ارتفاع أكبر */}
+                {/* Image Container - Fill div with 2px border */}
                 <div 
-                  className="h-64 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden cursor-pointer group"
+                  className="h-64 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden cursor-pointer group border-2 border-gray-300"
                   onClick={() => viewProductDetails(product.id)}
                 >
                   {product.productImages?.[0] ? (
@@ -191,7 +191,7 @@ const Shop = () => {
                       <img
                         src={product.productImages[0].imageUrl}
                         alt={product.name}
-                        className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           e.target.style.display = 'none';
                           e.target.parentElement.innerHTML = `
@@ -315,7 +315,7 @@ const Shop = () => {
               }}
               className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-primary-foreground h-10 px-4 py-2 bg-[#0A1F44] hover:bg-[#0A1F44]/90"
             >
-              View All Products
+              <span className="text-[#C9A227]">View All Products</span>
             </button>
           </div>
         )}
